@@ -30,7 +30,7 @@ if __name__ == '__main__':
                 total_reward += value
                 logger.info(f"#{index} | {address}: {value} $TAIKO, cumulative: {round(total_reward, 2)} $TAIKO.")
             else:
-                logger.info(f"#{index} | {address}: not eligible.")
+                logger.warning(f"#{index} | {address}: not eligible.")
 
         logger.info(f'total reward: {round(total_reward, 2)} $TAIKO.')
 
