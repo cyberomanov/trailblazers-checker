@@ -31,9 +31,7 @@ if __name__ == '__main__':
                 logger.info(f"#{index} | {address}: {value} $TAIKO, cumulative: {round(total_reward, 2)} $TAIKO.")
             else:
                 logger.warning(f"#{index} | {address}: not eligible.")
-
         logger.info(f'total reward: {round(total_reward, 2)} $TAIKO.')
-
     except KeyboardInterrupt:
         exit()
     except Exception as e:
