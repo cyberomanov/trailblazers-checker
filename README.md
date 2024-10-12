@@ -5,7 +5,7 @@
 Перед началом установки рекомендуется обновить системные пакеты:
 
 ```bash
-sudo apt update && sudo apt upgrade
+sudo apt update && sudo apt upgrade -y
 ```
 
 ### Шаг 2: Установите зависимости
