@@ -1,4 +1,5 @@
 import time
+from decimal import Decimal
 
 from loguru import logger
 from web3 import Web3
@@ -97,9 +98,10 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
 
     max_priority_fee_per_gas, max_fee_per_gas = get_gas(w3=w3)
 
+    amount_int = int(Decimal(str(amount)) * Decimal(taiko_token.denomination))
     data = "0x3d13f874" + \
-           pad_to_32_bytes(account.address[2:]) + \
-           pad_to_32_bytes(hex(int(amount * taiko_token.denomination))[2:]) + \
+           pad_to_32_bytes(account.address[2:].lower()) + \
+           pad_to_32_bytes(hex(amount_int)[2:]) + \
            pad_to_32_bytes("60") + pad_to_32_bytes(str(args)) + proof
 
     try:
