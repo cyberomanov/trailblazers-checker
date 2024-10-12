@@ -73,15 +73,15 @@ def get_gas(w3: Web3()):
     latest_block = w3.eth.block_number
     fee_history = w3.eth.fee_history(1, latest_block, reward_percentiles=[50])
     base_fee_per_gas1 = fee_history['baseFeePerGas'][0]
-    max_priority_fee_per_gas = int(fee_history['reward'][0][0] * 2)
+    max_priority_fee_per_gas = int(fee_history['reward'][0][0] * 1.1)
 
-    max_fee_per_gas = int(base_fee_per_gas1 + max_priority_fee_per_gas * 2)
+    max_fee_per_gas = int(base_fee_per_gas1 + max_priority_fee_per_gas * 1.1)
 
     base_fee_per_gas2 = w3.eth.get_block('latest')['baseFeePerGas']
     if int(base_fee_per_gas2) > max_fee_per_gas:
-        max_fee_per_gas = int(base_fee_per_gas2)
+        max_fee_per_gas = int(base_fee_per_gas2 * 1.1)
 
-    return int(max_priority_fee_per_gas * 2), int(max_fee_per_gas * 2)
+    return int(max_priority_fee_per_gas), int(max_fee_per_gas)
 
 
 def pad_to_32_bytes(value):
@@ -108,7 +108,7 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
             'to': claim_contract,
             'value': 0,
             'data': data
-        }) * 3)
+        }) * 1.1)
 
         transaction = {
             "chainId": taiko_chain.id,
