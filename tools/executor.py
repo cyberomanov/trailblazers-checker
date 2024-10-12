@@ -5,16 +5,26 @@ from loguru import logger
 from web3 import Web3
 
 from data.constants import taiko_chain, taiko_token
+from tools.change_ip import execute_change_ip
 from tools.crypto import claim_taiko_tx, get_balance_of, transfer_token_tx, get_balance
 from tools.other_utils import get_reward, sleep_in_range
+from user_data import config
 from user_data.config import sleep_between_accounts
 
 
 def single_executor(index: int, line: str, session: requests.Session()):
     try:
         private_key, recipient_address = line.split('##')
-
         address = Web3(Web3.HTTPProvider()).eth.account.from_key(private_key).address
+
+        if config.change_ip_url:
+            change_ip = execute_change_ip(change_ip_url=config.change_ip_url)
+            if change_ip:
+                logger.info(f"#{index} | {address} | ip has been changed.")
+            else:
+                logger.error(f"#{index} | {address} | ip has not been changed.")
+                return
+
         reward = get_reward(session=session, address=address)
 
         if reward.value:
