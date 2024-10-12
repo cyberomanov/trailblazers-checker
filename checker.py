@@ -6,7 +6,7 @@ from tools.other_utils import read_file, get_proxied_session
 from user_data.config import mobile_proxy
 
 if __name__ == '__main__':
-    add_logger()
+    add_logger(version='v2.0')
     try:
         addresses = read_file('user_data/address.txt')
         session = get_proxied_session(proxy=mobile_proxy)
