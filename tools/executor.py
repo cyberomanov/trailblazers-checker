@@ -24,7 +24,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
             logger.success(f"#{index} | {address} | {value} $TAIKO.")
 
             taiko_eth_balance = get_balance(address=address, rpc=taiko_chain.rpc)
-            if taiko_eth_balance.float > 0.0005:
+            if taiko_eth_balance.float > 0.0002:
                 claim_tx = claim_taiko_tx(private_key=private_key, amount=value, proof=proof, args=len(proof_list) - 6)
                 if claim_tx:
                     if "already claimed" in claim_tx:
@@ -54,7 +54,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                 logger.warning(
                     f"#{index} | {address} | "
                     f"balance | not enough balance for claim. "
-                    f"minimum required amount: 0.0005 $ETH, actual balance: {taiko_eth_balance.float} $ETH."
+                    f"minimum required amount: 0.0002 $ETH, actual balance: {taiko_eth_balance.float} $ETH."
                 )
 
         else:
