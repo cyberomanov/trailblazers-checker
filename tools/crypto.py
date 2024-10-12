@@ -114,8 +114,8 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str):
             "value": 0,
             "data": data,
             "gas": gas_limit,
-            "maxFeePerGas": int(max_fee_per_gas * 3),
-            "maxPriorityFeePerGas": int(max_priority_fee_per_gas * 3),
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
             "nonce": nonce
         }
 
@@ -175,8 +175,8 @@ def transfer_token_tx(private_key: str, recipient_address: str, amount: int):
             "value": 0,
             "data": tx_data['data'],
             "gas": gas_limit,
-            "maxFeePerGas": int(max_fee_per_gas * 3),
-            "maxPriorityFeePerGas": int(max_priority_fee_per_gas * 3),
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
             "nonce": nonce
         }
 

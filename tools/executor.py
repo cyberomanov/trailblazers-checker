@@ -40,7 +40,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                     f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
                     f"{taiko_chain.explorer}/{transfer_tx}"
                 )
-                sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1])
+                sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1], log=True)
         else:
             logger.warning(
                 f"#{index} | {address} | "
