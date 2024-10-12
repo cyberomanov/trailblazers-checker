@@ -1,4 +1,3 @@
-import time
 from decimal import Decimal
 
 from loguru import logger
@@ -41,7 +40,7 @@ def get_balance_of(contract: str, address: str, rpc: str, denomination: int = 10
     )
 
 
-def sign_and_wait(w3: Web3, transaction: {}, private_key: str, timeout: int = 120, nonce_boosted: bool = False):
+def sign_and_wait(w3: Web3, transaction: {}, private_key: str, timeout: int = 120):
     account = w3.eth.account.from_key(private_key)
     signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
     try:
@@ -56,18 +55,7 @@ def sign_and_wait(w3: Web3, transaction: {}, private_key: str, timeout: int = 12
         logger.error(f"{account.address}: {txn_hash.hex()} not confirmed in {timeout} seconds.")
         return None
     except ValueError as e:
-        error_message = e.args[0]
-        if 'replacement transaction underpriced' in error_message.get('message', ''):
-            time.sleep(30)
-            if not nonce_boosted:
-                transaction['nonce'] += 1
-                nonce_boosted = True
-                logger.error(f"{account.address}: replacement transaction underpriced, nonce boosted.")
-            else:
-                logger.error(f"{account.address}: replacement transaction underpriced.")
-            return sign_and_wait(w3=w3, transaction=transaction, private_key=private_key, nonce_boosted=nonce_boosted)
-        else:
-            logger.error(f"{account.address}: {error_message}.")
+        logger.error(f"{account.address}: {e.args[0]}.")
 
 
 def get_gas(w3: Web3()):
