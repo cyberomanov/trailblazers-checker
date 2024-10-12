@@ -18,12 +18,13 @@ def single_executor(index: int, line: str, session: requests.Session()):
 
     if reward.value:
         value = round(float(reward.value), 2)
-        proof = "".join(address[2:] for address in ast.literal_eval(reward.proof))
+        proof_list = ast.literal_eval(reward.proof)
+        proof = "".join(address[2:] for address in proof_list)
         logger.success(f"#{index} | {address} | {value} $TAIKO.")
 
         taiko_eth_balance = get_balance(address=address, rpc=taiko_chain.rpc)
         if taiko_eth_balance.float > 0.0005:
-            claim_tx = claim_taiko_tx(private_key=private_key, amount=value, proof=proof)
+            claim_tx = claim_taiko_tx(private_key=private_key, amount=value, proof=proof, args=len(proof_list) - 6)
             if claim_tx:
                 if "already claimed" in claim_tx:
                     logger.warning(f"#{index} | {address} | claim_tx | already claimed.")

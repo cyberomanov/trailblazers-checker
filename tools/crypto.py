@@ -70,22 +70,25 @@ def sign_and_wait(w3: Web3, transaction: {}, private_key: str, timeout: int = 12
 
 
 def get_gas(w3: Web3()):
-    gas_multiplier = 2
-
     latest_block = w3.eth.block_number
     fee_history = w3.eth.fee_history(1, latest_block, reward_percentiles=[50])
-    base_fee_per_gas = fee_history['baseFeePerGas'][0]
-    max_priority_fee_per_gas = int(fee_history['reward'][0][0] * gas_multiplier)
+    base_fee_per_gas1 = fee_history['baseFeePerGas'][0]
+    max_priority_fee_per_gas = int(fee_history['reward'][0][0] * 2)
 
-    max_fee_per_gas = int(base_fee_per_gas + max_priority_fee_per_gas * gas_multiplier)
-    return int(max_priority_fee_per_gas * 3), int(max_fee_per_gas * 3)
+    max_fee_per_gas = int(base_fee_per_gas1 + max_priority_fee_per_gas * 2)
+
+    base_fee_per_gas2 = w3.eth.get_block('latest')['baseFeePerGas']
+    if int(base_fee_per_gas2) > max_fee_per_gas:
+        max_fee_per_gas = int(base_fee_per_gas2)
+
+    return int(max_priority_fee_per_gas * 2), int(max_fee_per_gas * 2)
 
 
 def pad_to_32_bytes(value):
     return value.rjust(64, '0')
 
 
-def claim_taiko_tx(private_key: str, amount: float, proof: str):
+def claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
     w3 = Web3(Web3.HTTPProvider(taiko_chain.rpc))
     claim_contract = w3.to_checksum_address(CLAIM_CONTRACT)
 
@@ -97,7 +100,7 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str):
     data = "0x3d13f874" + \
            pad_to_32_bytes(account.address[2:]) + \
            pad_to_32_bytes(hex(int(amount * taiko_token.denomination))[2:]) + \
-           pad_to_32_bytes("60") + pad_to_32_bytes("12") + proof
+           pad_to_32_bytes("60") + pad_to_32_bytes(str(args)) + proof
 
     try:
         gas_limit = int(w3.eth.estimate_gas({
