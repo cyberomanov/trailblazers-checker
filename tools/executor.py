@@ -14,7 +14,12 @@ from user_data.config import sleep_between_accounts
 
 def single_executor(index: int, line: str, session: requests.Session()):
     try:
-        private_key, recipient_address = line.split('##')
+        if '##' in line:
+            private_key, recipient_address = line.split('##')
+        else:
+            private_key = line
+            recipient_address = ''
+
         address = Web3(Web3.HTTPProvider()).eth.account.from_key(private_key).address
 
         if config.change_ip_url:
@@ -41,23 +46,24 @@ def single_executor(index: int, line: str, session: requests.Session()):
                     logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
                     sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1])
 
-            taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
-            if taiko_balance.int:
-                transfer_tx = transfer_token_tx(
-                    private_key=private_key, amount=taiko_balance.int, recipient_address=recipient_address
-                )
-                if transfer_tx:
-                    logger.info(
-                        f"#{index} | {address} | "
-                        f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
-                        f"{taiko_chain.explorer}/{transfer_tx}"
+            if recipient_address:
+                taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
+                if taiko_balance.int:
+                    transfer_tx = transfer_token_tx(
+                        private_key=private_key, amount=taiko_balance.int, recipient_address=recipient_address
                     )
-                    sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1], log=True)
-            else:
-                logger.warning(
-                    f"#{index} | {address} | "
-                    f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
-                )
+                    if transfer_tx:
+                        logger.info(
+                            f"#{index} | {address} | "
+                            f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
+                            f"{taiko_chain.explorer}/{transfer_tx}"
+                        )
+                        sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1], log=True)
+                else:
+                    logger.warning(
+                        f"#{index} | {address} | "
+                        f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
+                    )
 
         else:
             logger.warning(f"#{index} | {address}: not eligible.")
