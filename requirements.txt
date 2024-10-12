@@ -1,5 +1,6 @@
 loguru==0.7.2
 pydantic==1.10.12
 Requests==2.32.3
+requests[socks]
 user_agents==2.2.0
 web3==6.20.3
