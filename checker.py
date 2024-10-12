@@ -1,20 +1,9 @@
-import json
-
-import requests
 from loguru import logger
 
-from datatypes.response import RewardResponse
 from tools.add_logger import add_logger
+from tools.other_utils import get_reward
 from tools.other_utils import read_file, get_proxied_session
-from tools.user_agent import generate_headers
 from user_data.config import mobile_proxy
-
-
-def get_reward(session: requests.Session(), address: str):
-    url = f"https://trailblazer.mainnet.taiko.xyz/claim/proof?address={address}"
-    response = session.get(url=url, headers=generate_headers())
-    return RewardResponse.parse_obj(json.loads(response.content))
-
 
 if __name__ == '__main__':
     add_logger()
