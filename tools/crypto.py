@@ -1,11 +1,15 @@
+import time
 from decimal import Decimal
 
 from loguru import logger
 from web3 import Web3
 from web3.exceptions import TimeExhausted
 
-from data.constants import taiko_chain, CLAIM_CONTRACT, taiko_token
+from data.constants import taiko_chain, CLAIM_CONTRACT, taiko_token, ORBITER_CONTRACT, XY_CONTRACTS, \
+    XY_AGGREGATOR_CONTRACT, ETH_CONTRACT
 from datatypes.crypto import Balance
+from user_data.chains import ChainItem
+from user_data.config import gas_multiplier
 
 
 def get_balance(address: str, rpc: str):
@@ -176,3 +180,107 @@ def transfer_token_tx(private_key: str, recipient_address: str, amount: int):
         return sign_and_wait(w3=w3, transaction=transaction, private_key=private_key)
     except Exception as e:
         logger.exception(e)
+
+
+def orbiter_bridge_tx(
+        private_key: str,
+        source_chain: ChainItem,
+        recipient_chain: ChainItem,
+        amount_to_bridge: float
+):
+    w3 = Web3(Web3.HTTPProvider(source_chain.rpc))
+    orbiter_recipient = w3.to_checksum_address(ORBITER_CONTRACT)
+
+    account = w3.eth.account.from_key(private_key)
+    nonce = w3.eth.get_transaction_count(account.address)
+
+    max_priority_fee_per_gas, max_fee_per_gas = get_gas(w3=w3)
+
+    gas_limit = int(w3.eth.estimate_gas({
+        'from': account.address,
+        'to': orbiter_recipient,
+        'value': Web3.to_wei(amount_to_bridge, 'ether') + recipient_chain.orbiter_code,
+        'data': '0x'
+    }) * gas_multiplier)
+
+    transaction = {
+        "chainId": source_chain.id,
+        "from": account.address,
+        "to": orbiter_recipient,
+        "value": Web3.to_wei(amount_to_bridge, 'ether') + recipient_chain.orbiter_code,
+        "data": "0x",
+        "gas": gas_limit,
+        "maxFeePerGas": max_fee_per_gas * gas_multiplier,
+        "maxPriorityFeePerGas": max_priority_fee_per_gas * gas_multiplier,
+        "nonce": nonce
+    }
+
+    return sign_and_wait(w3=w3, transaction=transaction, private_key=private_key)
+
+
+def xy_bridge_tx(
+        private_key: str,
+        source_chain: ChainItem,
+        recipient_chain: ChainItem,
+        amount_to_bridge: float
+):
+    w3 = Web3(Web3.HTTPProvider(source_chain.rpc))
+    recipient = w3.to_checksum_address(XY_CONTRACTS[source_chain.name])
+
+    account = w3.eth.account.from_key(private_key)
+    nonce = w3.eth.get_transaction_count(account.address)
+
+    max_priority_fee_per_gas, max_fee_per_gas = get_gas(w3=w3)
+
+    method = '0xcdc65927'
+    data = method + \
+           pad_to_32_bytes('0').lower() + \
+           pad_to_32_bytes(ETH_CONTRACT[2:]).lower() + \
+           pad_to_32_bytes(ETH_CONTRACT[2:]).lower() + \
+           pad_to_32_bytes(account.address[2:]).lower() + \
+           pad_to_32_bytes(hex(int(amount_to_bridge * 10 ** 18))[2:]).lower() + \
+           pad_to_32_bytes(hex(int(amount_to_bridge * 10 ** 18))[2:]).lower() + \
+           pad_to_32_bytes('1a0').lower() + \
+           pad_to_32_bytes(hex(recipient_chain.id)[2:]).lower() + \
+           pad_to_32_bytes(ETH_CONTRACT[2:]).lower() + \
+           pad_to_32_bytes('0').lower() + \
+           pad_to_32_bytes(hex(int(amount_to_bridge * 0.9 * 10 ** 18))[2:]).lower() + \
+           pad_to_32_bytes('64').lower() + \
+           pad_to_32_bytes(XY_AGGREGATOR_CONTRACT[2:]).lower() + \
+           pad_to_32_bytes('1').lower() + \
+           pad_to_32_bytes('0').lower()
+
+    gas_limit = int(w3.eth.estimate_gas({
+        'from': account.address,
+        'to': recipient,
+        'value': Web3.to_wei(amount_to_bridge, 'ether'),
+        'data': data
+    }) * gas_multiplier)
+
+    transaction = {
+        "chainId": source_chain.id,
+        "from": account.address,
+        "to": recipient,
+        "value": Web3.to_wei(amount_to_bridge, 'ether'),
+        "data": data,
+        "gas": gas_limit,
+        "maxFeePerGas": max_fee_per_gas * gas_multiplier,
+        "maxPriorityFeePerGas": max_priority_fee_per_gas * gas_multiplier,
+        "nonce": nonce
+    }
+
+    return sign_and_wait(w3=w3, transaction=transaction, private_key=private_key)
+
+
+def wait_for_new_balance(address: str, old_balance: Balance, chain: ChainItem) -> Balance:
+    tries = 0
+    while True:
+        new_recipient_balance = get_balance(address=address, rpc=chain.rpc)
+
+        if new_recipient_balance.float != old_balance.float:
+            return new_recipient_balance
+        else:
+            tries += 1
+            if tries > 600:
+                return new_recipient_balance
+            time.sleep(1)

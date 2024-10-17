@@ -11,6 +11,7 @@ class ChainItem(BaseModel):
     id: int
     rpc: str
     explorer: str
+    orbiter_code: int
 
     def __hash__(self):
         return hash((self.name, self.id, self.rpc, self.explorer))

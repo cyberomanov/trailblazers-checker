@@ -1,15 +1,59 @@
 import ast
+import random
 
 import requests
 from loguru import logger
 from web3 import Web3
 
 from data.constants import taiko_chain, taiko_token
+from modules.orbiter import orbiter_bridge
+from modules.xy import xy_bridge
 from tools.change_ip import execute_change_ip
-from tools.crypto import claim_taiko_tx, get_balance_of, transfer_token_tx
+from tools.crypto import claim_taiko_tx, get_balance_of, transfer_token_tx, get_balance
 from tools.other_utils import get_reward, sleep_in_range
-from user_data import config
+from user_data import config, chains
+from user_data.chains import ChainItem
 from user_data.config import sleep_between_accounts
+
+
+def bridge_deposit(
+        index: int,
+        address: str,
+        private_key: str,
+        source_chains: [ChainItem]):
+    source_chain = None
+    amount_to_bridge = 0
+
+    for chain in source_chains:
+        chain_balance = get_balance(address=address, rpc=chain.rpc)
+        if chain_balance.float > config.deposit_to_taiko_amount[1]:
+            source_chain = chain
+            amount_to_bridge = round(
+                random.uniform(config.deposit_to_taiko_amount[0], config.deposit_to_taiko_amount[1]),
+                random.randint(5, 8)
+            )
+            break
+
+    if source_chain:
+        bridge_to_use = random.choice(config.bridges_to_use)
+        if 'orbiter' in bridge_to_use:
+            orbiter_bridge(
+                index=index,
+                private_key=private_key,
+                source_chain=chain,
+                recipient_chain=taiko_chain,
+                amount_to_bridge=amount_to_bridge
+            )
+        elif 'xy' in bridge_to_use:
+            xy_bridge(
+                index=index,
+                private_key=private_key,
+                source_chain=chain,
+                recipient_chain=taiko_chain,
+                amount_to_bridge=amount_to_bridge
+            )
+    else:
+        logger.info(f"#{index} | {address}: no chain with balance > {config.deposit_to_taiko_amount[1]} $ETH.")
 
 
 def single_executor(index: int, line: str, session: requests.Session()):
@@ -37,6 +81,16 @@ def single_executor(index: int, line: str, session: requests.Session()):
             proof_list = ast.literal_eval(reward.proof)
             proof = "".join(address[2:] for address in proof_list)
             logger.success(f"#{index} | {address} | {value} $TAIKO.")
+
+            if config.deposit_from_source_chains:
+                taiko_eth_balance = get_balance(address=address, rpc=taiko_chain.rpc)
+                if taiko_eth_balance.float < config.deposit_to_taiko_amount[0]:
+                    bridge_deposit(
+                        index=index,
+                        address=address,
+                        private_key=private_key,
+                        source_chains=chains.source_chains
+                    )
 
             claim_tx = claim_taiko_tx(private_key=private_key, amount=value, proof=proof, args=len(proof_list) - 6)
             if claim_tx:

@@ -1,15 +1,19 @@
+import os
 import random
 import re
 import time
 
 from loguru import logger
 
-from tools.add_logger import add_logger
+from tools.add_logger import add_logger, LOG_OUTPUT
 from tools.executor import single_executor
 from tools.other_utils import read_file, get_proxied_session
 from user_data.config import mobile_proxy, shuffle_accounts
 
 if __name__ == '__main__':
+    if os.path.exists(LOG_OUTPUT):
+        os.remove(LOG_OUTPUT)
+
     add_logger(version='v2.0')
     try:
         lines = read_file('user_data/private.txt')
@@ -29,11 +33,12 @@ if __name__ == '__main__':
                 if wallet_address:
                     insufficient_addresses.append(wallet_address)
 
-        insufficient_addresses = set(insufficient_addresses)
-        logger.info(f'found {len(insufficient_addresses)} addresses with insufficient balance: \n')
-        time.sleep(3)
-        for address in insufficient_addresses:
-            print(address)
+        if insufficient_addresses:
+            insufficient_addresses = set(insufficient_addresses)
+            logger.info(f'found {len(insufficient_addresses)} addresses with insufficient balance: \n')
+            time.sleep(3)
+            for address in insufficient_addresses:
+                print(address)
 
     except KeyboardInterrupt:
         exit()
