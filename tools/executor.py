@@ -98,7 +98,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                     logger.warning(f"#{index} | {address} | claim_tx | already claimed.")
                 else:
                     logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
-                    sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1])
+                    sleep_in_range(sec_from=31, sec_to=61)
 
             if recipient_address:
                 taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
