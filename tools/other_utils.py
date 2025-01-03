@@ -34,6 +34,6 @@ def get_proxied_session(proxy: str):
 
 
 def get_reward(session: requests.Session(), address: str):
-    url = f"https://trailblazer.mainnet.taiko.xyz/claim/proof?address={address}"
+    url = f"https://trailblazer.mainnet.taiko.xyz/s2/claim/proof?address={address}"
     response = session.get(url=url, headers=generate_headers())
     return RewardResponse.parse_obj(json.loads(response.content))
