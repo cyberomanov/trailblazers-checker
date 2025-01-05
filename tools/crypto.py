@@ -118,7 +118,7 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
 
         return sign_and_wait(w3=w3, transaction=transaction, private_key=private_key)
     except Exception as e:
-        if "('0x83b9ec9b', '0x83b9ec9b')" in str(e):
+        if '0x83b9ec9b' in str(e):
             return 'already claimed'
         else:
             logger.exception(e)
