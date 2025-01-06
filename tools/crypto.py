@@ -124,6 +124,34 @@ def claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
             logger.exception(e)
 
 
+def simulate_claim_taiko_tx(private_key: str, amount: float, proof: str, args: int):
+    w3 = Web3(Web3.HTTPProvider(taiko_chain.rpc))
+    claim_contract = w3.to_checksum_address(CLAIM_CONTRACT)
+
+    account = w3.eth.account.from_key(private_key)
+
+    amount_int = int(Decimal(str(amount)) * Decimal(taiko_token.denomination))
+    data = "0x3d13f874" + \
+           pad_to_32_bytes(account.address[2:].lower()) + \
+           pad_to_32_bytes(hex(amount_int)[2:]) + \
+           pad_to_32_bytes("60") + pad_to_32_bytes(str(args)) + proof
+
+    try:
+        gas_limit = int(w3.eth.estimate_gas({
+            'from': account.address,
+            'to': claim_contract,
+            'value': 0,
+            'data': data
+        }) * 1.1)
+
+        return True
+    except Exception as e:
+        if '0x83b9ec9b' in str(e):
+            return 'already claimed'
+        else:
+            logger.exception(e)
+
+
 def transfer_token_tx(private_key: str, recipient_address: str, amount: int):
     w3 = Web3(Web3.HTTPProvider(taiko_chain.rpc))
 
