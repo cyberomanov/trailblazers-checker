@@ -100,7 +100,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                     if "already claimed" in claim_tx:
                         logger.info(f"#{index} | {address} | claim_tx | already claimed.")
                     else:
-                        logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
+                        logger.success(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
                         sleep_in_range(sec_from=31, sec_to=61)
             else:
                 logger.info(f"#{index} | {address} | claim_tx | already claimed.")
@@ -112,7 +112,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                         private_key=private_key, amount=taiko_balance.int, recipient_address=recipient_address
                     )
                     if transfer_tx:
-                        logger.info(
+                        logger.success(
                             f"#{index} | {address} | "
                             f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
                             f"{taiko_chain.explorer}/{transfer_tx}"
@@ -123,11 +123,11 @@ def single_executor(index: int, line: str, session: requests.Session()):
                             log=True
                         )
                 else:
-                    logger.warning(
+                    logger.info(
                         f"#{index} | {address} | "
                         f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
                     )
         else:
-            logger.warning(f"#{index} | {address}: not eligible.")
+            logger.info(f"#{index} | {address}: not eligible.")
     except Exception as e:
         logger.exception(e)
