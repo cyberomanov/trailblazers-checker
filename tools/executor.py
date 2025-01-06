@@ -98,7 +98,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                 claim_tx = claim_taiko_tx(private_key=private_key, amount=value, proof=proof, args=len(proof_list) - 6)
                 if claim_tx:
                     if "already claimed" in claim_tx:
-                        logger.warning(f"#{index} | {address} | claim_tx | already claimed.")
+                        logger.info(f"#{index} | {address} | claim_tx | already claimed.")
                     else:
                         logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
                         sleep_in_range(sec_from=31, sec_to=61)
