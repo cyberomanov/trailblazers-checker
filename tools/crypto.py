@@ -144,12 +144,13 @@ def simulate_claim_taiko_tx(private_key: str, amount: float, proof: str, args: i
             'data': data
         }) * 1.1)
 
-        return True
+        return ''
     except Exception as e:
         if '0x83b9ec9b' in str(e):
             return 'already claimed'
         else:
             logger.exception(e)
+            return ''
 
 
 def transfer_token_tx(private_key: str, recipient_address: str, amount: int):
