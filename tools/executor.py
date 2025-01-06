@@ -103,7 +103,7 @@ def single_executor(index: int, line: str, session: requests.Session()):
                         logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
                         sleep_in_range(sec_from=31, sec_to=61)
             else:
-                logger.success(f"#{index} | {address} | claim_tx | already claimed.")
+                logger.info(f"#{index} | {address} | claim_tx | already claimed.")
 
             if recipient_address:
                 taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
