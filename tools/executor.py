@@ -75,7 +75,6 @@ def single_executor(index: int, line: str, session: requests.Session()):
                 return
 
         reward = get_reward(session=session, address=address)
-
         if reward.value:
             value = round(float(reward.value), 2)
             proof_list = ast.literal_eval(reward.proof)
@@ -103,29 +102,31 @@ def single_executor(index: int, line: str, session: requests.Session()):
                     else:
                         logger.info(f"#{index} | {address} | claim_tx | {taiko_chain.explorer}/{claim_tx}")
                         sleep_in_range(sec_from=31, sec_to=61)
-
-                if recipient_address:
-                    taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
-                    if taiko_balance.int:
-                        transfer_tx = transfer_token_tx(
-                            private_key=private_key, amount=taiko_balance.int, recipient_address=recipient_address
-                        )
-                        if transfer_tx:
-                            logger.info(
-                                f"#{index} | {address} | "
-                                f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
-                                f"{taiko_chain.explorer}/{transfer_tx}"
-                            )
-                            sleep_in_range(sec_from=sleep_between_accounts[0], sec_to=sleep_between_accounts[1],
-                                           log=True)
-                    else:
-                        logger.warning(
-                            f"#{index} | {address} | "
-                            f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
-                        )
-
             else:
-                logger.warning(f"#{index} | {address} | claim_tx | already claimed.")
+                logger.success(f"#{index} | {address} | claim_tx | already claimed.")
+
+            if recipient_address:
+                taiko_balance = get_balance_of(address=address, rpc=taiko_chain.rpc, contract=taiko_token.address)
+                if taiko_balance.int:
+                    transfer_tx = transfer_token_tx(
+                        private_key=private_key, amount=taiko_balance.int, recipient_address=recipient_address
+                    )
+                    if transfer_tx:
+                        logger.info(
+                            f"#{index} | {address} | "
+                            f"transfer {taiko_balance.float} $TAIKO -> {recipient_address} | "
+                            f"{taiko_chain.explorer}/{transfer_tx}"
+                        )
+                        sleep_in_range(
+                            sec_from=sleep_between_accounts[0],
+                            sec_to=sleep_between_accounts[1],
+                            log=True
+                        )
+                else:
+                    logger.warning(
+                        f"#{index} | {address} | "
+                        f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
+                    )
         else:
             logger.warning(f"#{index} | {address}: not eligible.")
     except Exception as e:
