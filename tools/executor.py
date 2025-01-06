@@ -128,6 +128,6 @@ def single_executor(index: int, line: str, session: requests.Session()):
                         f"transfer_tx | nothing to transfer: {taiko_balance.float} $TAIKO."
                     )
         else:
-            logger.info(f"#{index} | {address}: not eligible.")
+            logger.warning(f"#{index} | {address}: not eligible.")
     except Exception as e:
         logger.exception(e)
